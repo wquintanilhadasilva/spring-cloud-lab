@@ -12,6 +12,10 @@ spring:
   cloud:
     config:
       uri: http://localhost:9090
+#      fail-fast: false
+#      name: delivery-eureka-server
+#      profile: dev
+#      label: master
       
 #  application:
 #    name: delivery-eureka-server

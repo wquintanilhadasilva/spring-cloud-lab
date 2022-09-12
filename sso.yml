@@ -1,6 +1,12 @@
 server:
   port: 8181
 
+spring:
+  security:
+    user:
+      name: admin@email.com
+      password: 123456
+
 eureka:
   instance:
     hostname: localhost

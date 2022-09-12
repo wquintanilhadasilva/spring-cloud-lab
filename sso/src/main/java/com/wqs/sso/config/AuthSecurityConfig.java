@@ -60,8 +60,30 @@ public class AuthSecurityConfig {
 				.scope("users:write")
 				.tokenSettings(TokenSettings.builder().accessTokenTimeToLive(Duration.ofMinutes(5)).build())
 				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build()).build();
+		
+		
+		RegisteredClient awblogClient = RegisteredClient
+				.withId("2")
+				.clientId("awblog")
+				.clientSecret(passwordEncoder.encode("123456"))
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUri("http://localhost:3000/authorized")
+				.redirectUri("https://oidcdebugger.com/debug")
+				.scope("mysuser:read")
+				.scope("mysuser:write")
+				.scope("posts:write")
+				.tokenSettings(TokenSettings.builder()
+						.accessTokenTimeToLive(Duration.ofMinutes(15))
+						.refreshTokenTimeToLive(Duration.ofDays(1))
+						.reuseRefreshTokens(false) // gerar um novo refresh token e invalidar o anterior
+						.build()).clientSettings(ClientSettings.builder()
+								.requireAuthorizationConsent(true)
+								.build())
+				.build();
 
-		return new InMemoryRegisteredClientRepository(Arrays.asList(awuserClient));
+		return new InMemoryRegisteredClientRepository(Arrays.asList(awuserClient, awblogClient));
 	}
 
 	@Bean

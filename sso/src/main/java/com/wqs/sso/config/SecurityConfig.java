@@ -1,10 +1,13 @@
 package com.wqs.sso.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
+@Import(OAuth2AuthorizationServerConfiguration.class)
 public class SecurityConfig {
 	
 	

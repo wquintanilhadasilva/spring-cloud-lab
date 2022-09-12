@@ -2,14 +2,3 @@ spring:
   config:
     import: "optional:configserver:"
     
-
-aw:
-  auth:
-    provider-uri: "http://localhost:8081"
-    # keytool -genkeypair -alias awblog -keyalg RSA -keypass 123456 -keystore awblog.jks -storepass 123456 -validity 3560
-    # keytool -list -keystore awblog.jks
-    jks:
-      keypass: 123456
-      storepass: 123456
-      alias: awblog
-      path: keystore/awblog.jks

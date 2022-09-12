@@ -14,7 +14,7 @@ public class AuthProperties {
 	@NotBlank
 	private String providerUri;
 	
-	@NotBlank
+//	@NotBlank
 	private JksProperties jks;
 
 	public String getProviderUri() {

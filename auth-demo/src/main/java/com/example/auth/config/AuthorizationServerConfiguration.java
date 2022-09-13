@@ -5,6 +5,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -22,7 +24,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.config.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
+import org.springframework.security.oauth2.server.authorization.config.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -55,28 +59,37 @@ public class AuthorizationServerConfiguration {
 	@Bean
 	public ProviderSettings providerSettings() {
 		// declaração do emissor do token jwt, atributo iss
+		// @formatter:off
 		return ProviderSettings.builder()
-				.issuer("http://auth-server:8181")
+				.issuer("http://localhost:8181") //http://auth-server:8181
 				.build();
+		// @formatter:on
 	}
 
 	
 	@Bean
-	public RegisteredClientRepository registeredClientRepository() {
+	public RegisteredClientRepository registeredClientRepository(PasswordEncoder encoder) {
 		RegisteredClient registeredClient = RegisteredClient
 				.withId(UUID.randomUUID().toString())
 				.clientId("huongdanjava")
-				.clientSecret("{noop}123456")
+				.clientSecret(encoder.encode("123456"))
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.redirectUri("https://oidcdebugger.com/debug")
+				.scope("users:read")
+				.scope("users:write")
 				.scope(OidcScopes.OPENID)
+				.tokenSettings(TokenSettings.builder()
+						.accessTokenTimeToLive(Duration.ofMinutes(5))
+						.reuseRefreshTokens(false) // gerar um novo refresh token e invalidar o anterior
+						.build())
+				.clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
 				.build();
 		
 		RegisteredClient client1 = RegisteredClient
 				.withId(UUID.randomUUID().toString())
 				.clientId("client1")
-				.clientSecret("{noop}1234567")
+				.clientSecret(encoder.encode("1234567"))
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -86,7 +99,28 @@ public class AuthorizationServerConfiguration {
 				.scope("read")
 				.build();
 		
-		return new InMemoryRegisteredClientRepository(Arrays.asList(client1, registeredClient));
+		RegisteredClient awblogClient = RegisteredClient
+				.withId("2")
+				.clientId("awblog")
+				.clientSecret(encoder.encode("123456"))
+				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+				.redirectUri("http://localhost:3000/authorized")
+				.redirectUri("https://oidcdebugger.com/debug")
+				.scope("mysuser:read")
+				.scope("mysuser:write")
+				.scope("posts:write")
+				.tokenSettings(TokenSettings.builder()
+						.accessTokenTimeToLive(Duration.ofMinutes(15))
+						.refreshTokenTimeToLive(Duration.ofDays(1))
+						.reuseRefreshTokens(false) // gerar um novo refresh token e invalidar o anterior
+						.build()).clientSettings(ClientSettings.builder()
+								.requireAuthorizationConsent(true)
+								.build())
+				.build();
+		
+		return new InMemoryRegisteredClientRepository(Arrays.asList(client1, registeredClient, awblogClient));
 		
 	}
 	

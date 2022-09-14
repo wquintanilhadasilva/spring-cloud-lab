@@ -7,6 +7,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -27,6 +30,8 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 import org.springframework.security.oauth2.server.authorization.config.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -64,6 +69,32 @@ public class AuthorizationServerConfiguration {
 				.issuer("http://localhost:8181") //http://auth-server:8181
 				.build();
 		// @formatter:on
+	}
+	
+	/**
+	 * Customiza os atributos gerados no token do usuário
+	 * @return
+	 */
+	@Bean
+	public OAuth2TokenCustomizer<JwtEncodingContext> jwtEncodingContextOAuth2TokenCustomizer() {
+		// Injeta o repositório de usuários ou dos dados que deseja obter
+		
+		return (context -> {
+			
+			// Verifica o tipo do Principal e se não for autenticação de serviço mas de usuário, incrementa o token
+			Authentication authentication = context.getPrincipal();
+//			if(authentication.getPrincipal() instance of User) {}
+			
+			
+			Set<String> authorities = new HashSet<>();
+			authorities.add("ADMIN");
+			authorities.add("READ");
+			
+			context.getClaims().claim("user_id", "id-do-usuario");
+			context.getClaims().claim("user_fullname", "Nome Completo do Usuário");
+			context.getClaims().claim("authorities", authorities);
+			
+		});
 	}
 
 	

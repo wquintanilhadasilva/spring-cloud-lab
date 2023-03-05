@@ -3,7 +3,7 @@ server:
 
 eureka:
   instance:
-    hostname: ${HOST_NAME} #localhost
+    hostname: localhost # ${HOST_NAME}
     preferIpAddress: true # registra usando o IP e não o dns
   client:
     registerWithEureka: true
